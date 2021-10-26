@@ -297,7 +297,7 @@ if(length==ISHA_BLOCKLEN) 	//check if the message length is equal to ISHA_BLOCKL
     
 # Size .text Analysis 
     - Previously 
-        -  (bytes) 
+        - 21,056 (bytes) 
 
     - Updated 
         - 20,260 (bytes)
