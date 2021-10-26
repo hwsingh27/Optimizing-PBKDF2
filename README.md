@@ -214,7 +214,8 @@ The following changes were made on the initial code to optimize <br/>
       
 ## void ISHAResult(....) <br/>
 1) __builtin_bswap32() is used in place of the for loop, as it is an inbuilt function, it reduces the time significantly. <br/>
-2) Created a macro bswap(32) to use in place of the builtin function, but that was not efficient as it was taking more time than the built-in function.<br/><br/>
+2) Created a macro bswap(32) to use in place of the builtin function, but that was not efficient as it was taking more time than the built-in function.<br/>
+3) Created macro looked like this: #define bswap32(x) ((((x) & 0xff000000) >> 24) | (((x) & 0x00ff0000) >>  8) | (((x) & 0x0000ff00) <<  8) | (((x) & 0x000000ff) << 24))<br/><br/>
     - Previously <br/>
    
      for (int i=0; i<20; i+=4) {<br/>
