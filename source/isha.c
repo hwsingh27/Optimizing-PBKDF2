@@ -153,7 +153,7 @@ void ISHAResult(ISHAContext *ctx, uint8_t *digest_out)
 
 /*
  * Reference/Credit: in collaboration with and guidance by Taher Ujjainwala,
- * worked together on tracing and optimizing this specific function of ISHAInput().
+ * worked together on tracing and discussed the ways of optimizing ISHAInput() function.
  */
 void ISHAInput(ISHAContext *ctx, const uint8_t *message_array, size_t length)
 {
