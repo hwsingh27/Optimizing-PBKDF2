@@ -48,9 +48,9 @@ The following changes were made on the initial code to optimize <br/>
         result[i] ^= temp[i];<br/>
   }<br/><br/>
   ```
-  
+  ```
    - Changes <br/>
-   
+   ```
     register size_t i;<br/>
     
     memcpy( saltplus, salt, salt_len );<br/>
@@ -71,12 +71,12 @@ The following changes were made on the initial code to optimize <br/>
 		  }<br/>
 		  j++;<br/>
 	    }<br/><br/>
-    
+   ``` 
 ## void pbkdf2_hmac_isha(....) <br/>
 1) Used memcpy() in place loops used for copying the data to reduce the time. <br/>
 2) Also used register while declaring the variables.<br/><br/>
     - Previously <br/>
-   
+   ```
     int l = dkLen / ISHA_DIGESTLEN + 1;<br/>
     for (int i=0; i<l; i++) {<br/>
     F(pass, pass_len, salt, salt_len, iter, i+1, accumulator + i*ISHA_DIGESTLEN);<br/>
@@ -84,21 +84,21 @@ The following changes were made on the initial code to optimize <br/>
     for (size_t i=0; i<dkLen; i++) {<br/>
     DK[i] = accumulator[i];<br/>
     }<br/><br/>
-      
+      ```
    - Changes <br/>
-   	  
+   ```  
     register int l = dkLen / ISHA_DIGESTLEN + 1;<br/>
 
 	  for (int i=0; i<l; i++) {<br/>
 	    F(pass, pass_len, salt, salt_len, iter, i+1, accumulator + i*ISHA_DIGESTLEN);<br/>
 	  }<br/>
 	  memcpy(DK,accumulator,dkLen);<br/><br/>
-    
+    ```
 ## void ISHAProcessMessageBlock(....) <br/>
 1) Merged two for loops into one and put W[t] in other loop that is also running 16 times. <br/>
 2) Extra operations were removed while updating ctx->MD[0 to 5].<br/><br/>
     - Previously <br/>
-   
+   ```
      for(t = 0; t < 16; t++)<br/>
      {<br/>
         W[t] = ((uint32_t) ctx->MBlock[t * 4]) << 24;<br/>
@@ -112,9 +112,10 @@ The following changes were made on the initial code to optimize <br/>
       ctx->MD[2] = (ctx->MD[2] + C) & 0xFFFFFFFF;<br/>
       ctx->MD[3] = (ctx->MD[3] + D) & 0xFFFFFFFF;<br/>
       ctx->MD[4] = (ctx->MD[4] + E) & 0xFFFFFFFF;<br/><br/>
-    
+    ```
       
    - Changes <br/>
+   ```
    	  for(t = 0; t < 16; t++)<br/>
 	    {<br/>
 		      temp = ISHACircularShift(5,A) + ((B & C) | ((~B) & D)) + E + ((((uint32_t) ctx->MBlock[t * 4]) << 24) |<br/>
@@ -133,12 +134,12 @@ The following changes were made on the initial code to optimize <br/>
 	     ctx->MD[2] += C;<br/>
 	     ctx->MD[3] += D;<br/>
 	     ctx->MD[4] += E;<br/><br/>
-       
+       ```
 ## void ISHAPadMessage(....) <br/>
 1) Used memset() in place loops used for passing a fixed value to reduce the time. <br/>
 2) Reduced the number of instructions while putting the values from MBlock[56] to MBlock[64] because value of MBlock[56 to 59] will be '0'.<br/><br/>
     - Previously <br/>
-   
+   ```
     if (ctx->MB_Idx > 55)<br/>
     {<br/>
       ctx->MBlock[ctx->MB_Idx++] = 0x80;<br/>
@@ -162,10 +163,11 @@ The following changes were made on the initial code to optimize <br/>
       ctx->MBlock[ctx->MB_Idx++] = 0;<br/>
     }<br/>
   }<br/>
-
+```
   /*<br/>
    *  Store the message length as the last 8 octets<br/>
    */<br/>
+   ```
       ctx->MBlock[56] = (ctx->Length_High >> 24) & 0xFF;<br/>
       ctx->MBlock[57] = (ctx->Length_High >> 16) & 0xFF;<br/>
       ctx->MBlock[58] = (ctx->Length_High >> 8) & 0xFF;<br/>
@@ -175,9 +177,9 @@ The following changes were made on the initial code to optimize <br/>
       ctx->MBlock[62] = (ctx->Length_Low >> 8) & 0xFF;<br/>
       ctx->MBlock[63] = (ctx->Length_Low) & 0xFF;<br/><br/>
    
-      
+      ```
    - Changes <br/>
-   	  
+   	  ```
       	if (ctx->MB_Idx > 55)<br/>
 	      {<br/>
 		        ctx->MBlock[ctx->MB_Idx++] = 0x80;<br/>
@@ -202,40 +204,40 @@ The following changes were made on the initial code to optimize <br/>
 	          ctx->MBlock[62] = (ctx->message_len >> RSHIFT_8) & 0xFF;
 	          ctx->MBlock[63] = (ctx->message_len) & 0xFF;
             
-      
+      ```
 ## void ISHAReset(....) <br/>
 1) Removed Length_High and Length_Low for tracking the length of message, instead single variable message_len is used to keep the track of message length. <br/><br/>
     - Previously <br/>
-  
+  ```
       ctx->Length_Low  = 0;<br/>
       ctx->Length_High = 0;<br/><br/>
    
-      
+      ```
    - Changes <br/> 
-      
+      ```
       ctx->message_len=0;	//length of message in bits<br/><br/>
-      
+      ```
 ## void ISHAResult(....) <br/>
 1) __builtin_bswap32() is used in place of the for loop, as it is an inbuilt function, it reduces the time significantly. <br/>
 2) Created a macro bswap(32) to use in place of the builtin function, but that was not efficient as it was taking more time than the built-in function.<br/>
 3) Created macro looked like this: #define bswap32(x) ((((x) & 0xff000000) >> 24) | (((x) & 0x00ff0000) >>  8) | (((x) & 0x0000ff00) <<  8) | (((x) & 0x000000ff) << 24))<br/><br/>
     - Previously <br/>
-   
+   ```
      for (int i=0; i<20; i+=4) {<br/>
      digest_out[i]   = (ctx->MD[i/4] & 0xff000000) >> 24;<br/>
      digest_out[i+1] = (ctx->MD[i/4] & 0x00ff0000) >> 16;<br/>
      digest_out[i+2] = (ctx->MD[i/4] & 0x0000ff00) >> 8;<br/>
      digest_out[i+3] = (ctx->MD[i/4] & 0x000000ff);<br/>
   } <br/><br/>
-      
+      ```
    - Changes <br/>  
-    
+    ```
     	*((uint32_t *)(digest_out))=__builtin_bswap32(ctx->MD[0]);<br/>
 	    *((uint32_t *)(digest_out+DIGEST_4))=__builtin_bswap32(ctx->MD[1]);<br/>
 	    *((uint32_t *)(digest_out+DIGEST_8))=__builtin_bswap32(ctx->MD[2]);<br/>
 	    *((uint32_t *)(digest_out+DIGEST_12))=__builtin_bswap32(ctx->MD[3]);<br/>
 	    *((uint32_t *)(digest_out+DIGEST_16))=__builtin_bswap32(ctx->MD[4]);<br/><br/>
-    
+    ```
     
 
 ## void ISHAInput(....) <br/>
@@ -244,6 +246,7 @@ The following changes were made on the initial code to optimize <br/>
 3) And after doing so, the parameters get changed accordingly.<br/><br/>
 
     - Previously <br/>
+    ```
    while(length-- && !ctx->Corrupted)<br/>
   {<br/>
     ctx->MBlock[ctx->MB_Idx++] = (*message_array & 0xFF);<br/>
@@ -271,9 +274,10 @@ The following changes were made on the initial code to optimize <br/>
     message_array++;<br/>
     }<br/><br/>
 
+   ```
       
    - Changes <br/> 
-
+```
 /*<br/>
  * Reference/Credit: in collaboration with and guidance by Taher Ujjainwala,<br/>
  * worked together on tracing and optimizing this specific function of ISHAInput().<br/>
@@ -298,17 +302,20 @@ if(length==ISHA_BLOCKLEN) 	//check if the message length is equal to ISHA_BLOCKL
 			}<br>
 		}<br>
 	}<br><br/>
-    
+ ```
 # Size .text Analysis 
+```
     - Previously 
         - 21,056 (bytes) 
 
     - Updated 
         - 20,260 (bytes)
-
+```
 # Runtime Analysis 
+```
     - Previously 
         - 8744 msec
 
     - Updated 
         - 2630 msec 
+```
