@@ -10,20 +10,21 @@ The following changes were made on the initial code to optimize <br/>
   The keyword register hints to compiler that a given variable can be put in a register. It's compiler's choice to put it in a register or not. (Resource: GeeksForGeeks)<br/><br/>
     - Previously <br/>
     
+    ```
     size_t i;<br/>
     
     for (i=0; i<key_len; i++) <br/>
       keypad[i] = key[i]; <br/>
     for(i=key_len; i<ISHA_BLOCKLEN; i++) <br/>
       keypad[i] = 0x00; <br/>
-      
+      ```
    - Changes <br/>
-   
+   ```
     register size_t i;<br/>
    
     memcpy(keypad,key,key_len);<br/>
     memset(keypad+key_len,0x00,ISHA_BLOCKLEN);<br/>
-    
+    ```
 
 ## void F(....) <br/>
 1) Used memcpy() in place loops used for copying the data to reduce the time. <br/>
@@ -31,6 +32,7 @@ The following changes were made on the initial code to optimize <br/>
 3) For loops were changed to while loops.<br/><br/>
     - Previously <br/>
    
+   ```
     size_t i;<br/>
     
     for (i=0; i<salt_len; i++)<br/>
@@ -45,6 +47,7 @@ The following changes were made on the initial code to optimize <br/>
     for (int i=0; i<ISHA_DIGESTLEN; i++)<br/>
         result[i] ^= temp[i];<br/>
   }<br/><br/>
+  ```
   
    - Changes <br/>
    
